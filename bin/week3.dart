@@ -4,7 +4,7 @@ import 'dart:io';
 class Game {
   String character = "";
   List<Monster> monsters = [];
-  int killCountMob = 0;
+  int killCountMob = 3;
 
   void startGame() {
     // 캐릭터 스탯 읽기
@@ -42,9 +42,53 @@ class Game {
       }
     }
     print("환영합니다., $character!");
-  }
-  void battle() {
 
+
+    // 초기화 완료후 게임시작
+    
+  }
+
+  void battle() {
+    // 몬스터 랜덤 생성
+    getRandomMonster();
+
+    // 전투 시작
+    while (true) {
+      // 캐릭터가 몬스터 공격
+      character.attackMonster(monsters[0]);
+
+      // 몬스터가 캐릭터 공격
+      monsters[0].attackCharacter(character);
+
+      // 전투 종료 체크
+      if (character.hp <= 0) {
+        print("전투에서 패배했습니다.");
+        break;
+      } else if (monsters[0].hp <= 0) {
+        print("전투에서 승리했습니다.");
+        character.killCount++;
+        character.exp += monsters[0].exp;
+        if (character.exp >= character.expToNextLevel) {
+          character.levelUp();
+        }
+        monsters.removeAt(0);
+        if (monsters.isEmpty) {
+          print("더 이상 사냥할 몬스터가 없습니다.");
+          break;
+        }
+      }
+
+      // 전투 상태 출력
+      character.showStatus();
+      monsters[0].showStatus();
+
+      // 사용자 입력 대기
+      stdout.write("계속해서 전투를 진행하시겠습니까? (Y/N): ");
+      final answer = stdin.readLineSync(encoding: systemEncoding);
+      if (answer?.toUpperCase() != "Y") {
+        break;
+      }
+    }
   }
 
   void getRandomMonster() {
