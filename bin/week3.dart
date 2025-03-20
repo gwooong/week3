@@ -15,18 +15,16 @@ class Game {
   void startGame() {
     while (true) {
       // 이름받기
-      stdout.write("캐릭터 이름 입력 (영문 또는 한글만 허용): \n");
+      stdout.write("캐릭터 이름 입력 (영문 또는 한글만 허용):");
       character.name =
           stdin.readLineSync(encoding: systemEncoding) ??
           "Player"; // 인코딩 설정 추가?
       if (nameRegExp.hasMatch(character.name)) {
         break;
       } else {
-        print("잘못된 입력입니다. 영문 또는 한글만 입력해주세요.");
+        print("잘못된 입력입니다. 영문 또는 한글만 입력해주세요.\n\n");
       }
     }
-
-    print("환영합니다, ${character.name}!");
 
     // 캐릭터 스탯 읽기
     final characterStats = File(
@@ -34,11 +32,10 @@ class Game {
     ).readAsStringSync().split(',');
     if (characterStats.length == 3) {
       // HP, ATK, DEF 체크
-      final player =
-          Character() //
-            ..hp = int.parse(characterStats[0]) // ..은 같은객체에서 연속으로 설정할 때 사용
-            ..atk = int.parse(characterStats[1])
-            ..def = int.parse(characterStats[2]);
+
+      character.hp = int.parse(characterStats[0]); // // 3칸짜리 리스트에 저장
+      character.atk = int.parse(characterStats[1]);
+      character.def = int.parse(characterStats[2]);
     }
 
     // 몬스터 스탯 읽기
@@ -55,8 +52,9 @@ class Game {
       }
     }
 
+    print("------------------게임 시작합니다!--------------");
+    character.showStatus();
     // 초기화 완료후 게임시작
-    //작성필요
     while (true) {
       battle();
 
@@ -84,7 +82,14 @@ class Game {
 
   void battle() {
     // 몬스터 랜덤 생성
+    Random random = Random();
     selectedMonster = getRandomMonster();
+    selectedMonster.atk =
+        character.def + random.nextInt(selectedMonster.atk - character.def + 1);
+
+    print("\n새로운 몬스터가 나타났습니다!");
+    selectedMonster.showStatus();
+    print("\n");
     int fightType = 0;
     int battleResult = 2;
     // 전투 시작
@@ -92,6 +97,7 @@ class Game {
       // 캐릭터가 몬스터 공격or방어 선택
       if (selectedMonster.hp > 0) {
         while (true) {
+          print("${character.name}의 턴.");
           stdout.write("행동을 선택하세요 (1: 공격, 2: 방어): ");
 
           fightType = int.tryParse(stdin.readLineSync() ?? "1") ?? 1;
@@ -108,8 +114,11 @@ class Game {
           }
         }
         // 몬스터가 캐릭터 공격
+        print("${selectedMonster.name}의 턴");
         selectedMonster.attackCharacter(character);
-
+        character.showStatus();
+        selectedMonster.showStatus();
+        print("\n");
         // 전투 종료 체크
         if (character.hp <= 0) {
           // 유저패
@@ -147,13 +156,13 @@ class Character {
 
   void attackMonster(Monster monster) {
     // 몬스터에게 데미지를 입힘
-    monster.hp -= max(0, atk - monster.def);
-    monster.showStatus();
+    monster.hp = monster.hp - max(0, atk - monster.def);
+    print("$name이 공격 자세를 취해 ${max(0, atk - monster.def)}만큼 데미지 줌\n");
   }
 
   void defend(Monster monster) {
-    hp = hp + monster.atk;
-    monster.showStatus();
+    hp = hp + max(0, monster.atk - def);
+    print("$name이 방어 자세를 취해 ${max(0, monster.atk - def)}만큼 체력 획득\n");
   }
 
   void showStatus() {
@@ -163,19 +172,19 @@ class Character {
 
 class Monster {
   String name = "";
-  int hp = 100;
-  int atk = 10;
-  int def = 5;
-  int level = 1;
-  int exp = 0;
+  int hp = 0;
+  int atk = 0;
+  int def = 0;
 
   attackCharacter(Character character) {
     character.hp -= max(0, atk - character.def);
-    character.showStatus();
+    print(
+      "$name이(가) ${character.name}을(를) 공격하여 ${max(0, atk - character.def)}만큼 데미지 줌",
+    );
   }
 
   showStatus() {
-    print("몬스터: $name, HP: $hp, 공격력: $atk, 방어력: $def, 레벨: $level, 경험치: $exp");
+    print("몬스터: $name, HP: $hp, 공격력: $atk, 방어력: $def");
   }
 }
 
