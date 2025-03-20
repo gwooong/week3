@@ -56,25 +56,29 @@ class Game {
     character.showStatus();
     // 초기화 완료후 게임시작
     while (true) {
-      battle();
-
-      if (battleResult == 0) {
+      if (character.hp <= 0) {
         print("패배 종료");
+        saveLog(0);
         break;
       }
-      if (character.killCount != killCountMob) {
+      if (battleResult != 0) battle(); // 최초 배틀용
+
+      if (((character.killCount != killCountMob) && character.hp > 0)) {
         print("다음 몬스터와 대결하시겠습니까? y/n");
         String nextBattle = stdin.readLineSync() ?? "y";
         if (nextBattle == "y") {
           continue;
-        } else {
+        } else if (nextBattle == "n") {
           print("비희망 게임 종료");
           break;
+        } else {
+          continue;
         }
       }
 
       if (character.killCount == killCountMob) {
         print("승리 종료");
+        saveLog(1);
         break;
       }
     }
@@ -144,6 +148,22 @@ class Game {
       selectMonster = monsters[randomIndex];
     }
     return selectMonster;
+  }
+
+  void saveLog(int result) {
+    // 로그 저장
+    print("결과를 저장하시겠습니까? y/n");
+    String saveLog = stdin.readLineSync() ?? "y";
+    if (saveLog == "n") {
+      return;
+    }
+    final logFile = File('data/result.txt');
+    final log = StringBuffer();
+    if (result == 1)
+      log.write("캐릭터: ${character.name}, HP: ${character.hp}, 승리");
+    else
+      log.write("캐릭터: ${character.name}, HP: ${character.hp}, 패배");
+    logFile.writeAsStringSync(log.toString());
   }
 }
 
